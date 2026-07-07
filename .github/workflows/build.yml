@@ -23,10 +23,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build release APK (mobile)
+      - name: Build release APKs
         env:
           NO_GS: 'true'
-        run: ./gradlew :fermata:assembleMobileRelease
+        run: ./gradlew :fermata:assembleMobileRelease :fermata:assembleAutoRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
