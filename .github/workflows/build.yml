@@ -20,16 +20,23 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install CMake
+        run: sdkmanager "cmake;3.22.1"
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build release APKs
+      - name: Build universal APKs
         env:
           NO_GS: 'true'
-        run: ./gradlew :fermata:assembleMobileRelease :fermata:assembleAutoRelease
+        run: >
+          ./gradlew
+          :fermata:packageAutoReleaseUniversalApk
+          :fermata:packageMobileReleaseUniversalApk
+          -PABI=arm64-v8a
 
-      - name: Upload APK
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: palasplay-apk
-          path: fermata/build/outputs/apk/**/*.apk
+          path: fermata/build/outputs/**/*.apk
