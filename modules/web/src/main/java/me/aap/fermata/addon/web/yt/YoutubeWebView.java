@@ -75,6 +75,8 @@ public class YoutubeWebView extends FermataWebView {
 		}
 
 		if (YoutubeSponsorBlock.isPreferenceChanged(prefs)) injectSponsorBlock();
+		if (YoutubeAdBlock.isPreferenceChanged(prefs)) injectAdBlock();
+		if (YoutubeDeArrow.isPreferenceChanged(prefs)) injectDeArrow();
 	}
 
 	@Override
@@ -94,6 +96,8 @@ public class YoutubeWebView extends FermataWebView {
 	protected void pageLoaded(String uri) {
 		attachListeners();
 		injectSponsorBlock();
+		injectAdBlock();
+		injectDeArrow();
 		addFocusHighlight();
 		CookieManager.getInstance().flush();
 	}
@@ -142,7 +146,30 @@ public class YoutubeWebView extends FermataWebView {
 
 	private void configureSponsorBlock() {
 		evaluateJavascript("if (window.FermataSponsorBlock) window.FermataSponsorBlock.configure(" +
-				YoutubeSponsorBlock.getConfigJson(getAddon().getPreferenceStore()) + ");", null);
+				YoutubeSponsorBlock.getConfigJson(getContext(), getAddon().getPreferenceStore()) + ");",
+				null);
+	}
+
+	private void injectAdBlock() {
+		String script = YoutubeAdBlock.getScript(getContext(), getAddon().getPreferenceStore());
+		if (!script.isEmpty()) evaluateJavascript(script, result -> configureAdBlock());
+		else configureAdBlock();
+	}
+
+	private void configureAdBlock() {
+		evaluateJavascript("if (window.FermataAdBlock) window.FermataAdBlock.configure(" +
+				YoutubeAdBlock.getConfigJson(getAddon().getPreferenceStore()) + ");", null);
+	}
+
+	private void injectDeArrow() {
+		String script = YoutubeDeArrow.getScript(getContext(), getAddon().getPreferenceStore());
+		if (!script.isEmpty()) evaluateJavascript(script, result -> configureDeArrow());
+		else configureDeArrow();
+	}
+
+	private void configureDeArrow() {
+		evaluateJavascript("if (window.FermataDeArrow) window.FermataDeArrow.configure(" +
+				YoutubeDeArrow.getConfigJson(getAddon().getPreferenceStore()) + ");", null);
 	}
 
 	protected boolean requestFullScreen() {
@@ -259,22 +286,50 @@ public class YoutubeWebView extends FermataWebView {
 	}
 
 	void setHighestVideoQuality() {
+		String target = getAddon().getPreferredQuality();
+		if (target == null) {
+			clearHighestVideoQuality();
+			return;
+		}
 		loadUrl("javascript:\n" +
 				"(function() {\n" +
 				CLEAR_HIGHEST_VIDEO_QUALITY_JS +
 				"  clearFermataQ();\n" +
+				"  var target = '" + target + "';\n" +
+				"  var order = ['highres','hd2880','hd2160','hd1440','hd1080','hd720','large','medium','small','tiny'];\n" +
 				"  var state = window.__fermataQ = { player: null, handler: null, timeout: null, attempts: 0 };\n" +
 				"  function getPlayer() {\n" +
 				"    return document.querySelector('#movie_player') || document.querySelector('.html5-video-player');\n" +
+				"  }\n" +
+				"  function pickLevel(levels) {\n" +
+				"    if (target === 'highest') {\n" +
+				"      for (var i = 0; i < levels.length; i++) {\n" +
+				"        if (levels[i] !== 'auto') return levels[i];\n" +
+				"      }\n" +
+				"      return null;\n" +
+				"    }\n" +
+				"    var targetRank = order.indexOf(target);\n" +
+				"    if (targetRank === -1) return null;\n" +
+				"    var best = null, bestRank = -1;\n" +
+				"    for (var i = 0; i < levels.length; i++) {\n" +
+				"      var rank = order.indexOf(levels[i]);\n" +
+				"      if (rank === -1) continue;\n" +
+				"      if (rank >= targetRank && (bestRank === -1 || rank < bestRank)) {\n" +
+				"        best = levels[i]; bestRank = rank;\n" +
+				"      }\n" +
+				"    }\n" +
+				"    if (best !== null) return best;\n" +
+				"    // Nothing at or below the target resolution: use the lowest available\n" +
+				"    for (var i = levels.length - 1; i >= 0; i--) {\n" +
+				"      if (levels[i] !== 'auto') return levels[i];\n" +
+				"    }\n" +
+				"    return null;\n" +
 				"  }\n" +
 				"  function applyHighest(p) {\n" +
 				"    if (!p || typeof p.getAvailableQualityLevels !== 'function') return false;\n" +
 				"    var levels = p.getAvailableQualityLevels();\n" +
 				"    if (!levels || levels.length === 0) return false;\n" +
-				"    var best = null;\n" +
-				"    for (var i = 0; i < levels.length; i++) {\n" +
-				"      if (levels[i] !== 'auto') { best = levels[i]; break; }\n" +
-				"    }\n" +
+				"    var best = pickLevel(levels);\n" +
 				"    if (!best) return false;\n" +
 				"    if (p.getPlaybackQuality && p.getPlaybackQuality() === best) return true;\n" +
 				"    if (typeof p.setPlaybackQualityRange === 'function') p.setPlaybackQualityRange(best, best);\n" +

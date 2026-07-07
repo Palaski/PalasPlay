@@ -23,6 +23,7 @@ import me.aap.utils.pref.PreferenceStore.Pref;
 
 final class YoutubeSponsorBlock {
 	private static final Pref<BooleanSupplier> ENABLED = Pref.b("YT_SPONSOR_BLOCK", false);
+	private static final Pref<BooleanSupplier> SHOW_TOAST = Pref.b("YT_SB_TOAST", true);
 	private static final Category[] CATEGORIES = {
 			new Category("sponsor", Pref.b("YT_SB_SPONSOR", true), R.string.sponsorblock_cat_sponsor),
 			new Category("selfpromo", Pref.b("YT_SB_SELFPROMO", true), R.string.sponsorblock_cat_selfpromo),
@@ -56,6 +57,14 @@ final class YoutubeSponsorBlock {
 			o.visibility = visibility.copy();
 		});
 
+		sponsorBlock.addBooleanPref(o -> {
+			o.store = ps;
+			o.pref = SHOW_TOAST;
+			o.title = R.string.sponsorblock_toast;
+			o.subtitle = R.string.sponsorblock_toast_sub;
+			o.visibility = sponsorBlockVisibility(visibility, ps);
+		});
+
 		for (Category c : CATEGORIES) {
 			sponsorBlock.addBooleanPref(o -> {
 				o.store = ps;
@@ -68,16 +77,30 @@ final class YoutubeSponsorBlock {
 	}
 
 	static boolean isPreferenceChanged(List<Pref<?>> prefs) {
-		if (prefs.contains(ENABLED)) return true;
+		if (prefs.contains(ENABLED) || prefs.contains(SHOW_TOAST)) return true;
 		for (Category c : CATEGORIES) {
 			if (prefs.contains(c.pref)) return true;
 		}
 		return false;
 	}
 
-	static String getConfigJson(PreferenceStore ps) {
-		return "{\"enabled\":" + ps.getBooleanPref(ENABLED) + ",\"categories\":" +
-				getCategoriesJson(ps) + ",\"actionTypes\":[\"skip\"]}";
+	static String getConfigJson(Context ctx, PreferenceStore ps) {
+		StringBuilder sb = new StringBuilder(512);
+		sb.append("{\"enabled\":").append(ps.getBooleanPref(ENABLED))
+				.append(",\"categories\":").append(getCategoriesJson(ps))
+				.append(",\"actionTypes\":[\"skip\"]")
+				.append(",\"showToast\":").append(ps.getBooleanPref(SHOW_TOAST))
+				.append(",\"toastText\":");
+		YoutubeScripts.appendJsonString(sb, ctx.getString(R.string.sponsorblock_skipped));
+		sb.append(",\"toastLabels\":{");
+		for (int i = 0; i < CATEGORIES.length; i++) {
+			if (i > 0) sb.append(',');
+			Category c = CATEGORIES[i];
+			YoutubeScripts.appendJsonString(sb, c.name);
+			sb.append(':');
+			YoutubeScripts.appendJsonString(sb, ctx.getString(c.title));
+		}
+		return sb.append("}}").toString();
 	}
 
 	static String getScript(Context ctx, PreferenceStore ps) {

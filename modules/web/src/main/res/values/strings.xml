@@ -15,7 +15,21 @@
     <string name="video_quality">Video quality</string>
     <string name="open_on_start">Open on start</string>
     <string name="auto_highest_video_quality">Auto-select highest video quality</string>
+    <string name="preferred_video_quality">Preferred video quality</string>
+    <string name="preferred_quality_auto">Auto (YouTube default)</string>
+    <string name="preferred_quality_highest">Highest available</string>
     <string name="try_to_skip_ad">Try to skip advertising</string>
+    <string name="adblock_enable">Block advertising</string>
+    <string name="adblock_enable_sub">Hides banner ads and skips video ads automatically.</string>
+    <string name="dearrow" translatable="false">DeArrow</string>
+    <string name="dearrow_sub">Replace clickbait titles and thumbnails with community alternatives.</string>
+    <string name="dearrow_enable">Enable DeArrow</string>
+    <string name="dearrow_enable_sub">Fetches title and thumbnail data from sponsor.ajay.app.</string>
+    <string name="dearrow_titles">Replace titles</string>
+    <string name="dearrow_thumbnails">Replace thumbnails</string>
+    <string name="sponsorblock_toast">Show skip notification</string>
+    <string name="sponsorblock_toast_sub">Displays a brief message when a segment is skipped.</string>
+    <string name="sponsorblock_skipped">Skipped: %s</string>
     <string name="sponsorblock" translatable="false">SponsorBlock</string>
     <string name="sponsorblock_sub">Skip crowd-sourced segments while watching YouTube.</string>
     <string name="sponsorblock_enable">Enable SponsorBlock</string>

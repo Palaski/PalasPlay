@@ -6,7 +6,10 @@
       enabled: false,
       endpoint: 'https://sponsor.ajay.app/api/skipSegments',
       categories: [],
-      actionTypes: ['skip']
+      actionTypes: ['skip'],
+      showToast: false,
+      toastText: 'Skipped: %s',
+      toastLabels: {}
     },
     videoId: null,
     loadedKey: null,
@@ -168,6 +171,36 @@
     }
   }
 
+  function showToast(category) {
+    if (!state.config.showToast) return;
+
+    const label = state.config.toastLabels[category] || category;
+    const text = state.config.toastText.replace('%s', label);
+    const parent = document.fullscreenElement || document.body;
+    if (!parent) return;
+
+    let toast = document.getElementById('fermata-sb-toast');
+    if (toast == null) {
+      toast = document.createElement('div');
+      toast.id = 'fermata-sb-toast';
+      toast.style.cssText =
+          'position:fixed;bottom:12%;left:50%;transform:translateX(-50%);' +
+          'background:rgba(28,28,28,0.92);color:#fff;padding:10px 18px;' +
+          'border-radius:20px;font-family:Roboto,Arial,sans-serif;font-size:14px;' +
+          'z-index:2147483647;pointer-events:none;transition:opacity 0.4s;' +
+          'white-space:nowrap;';
+    }
+    if (toast.parentNode !== parent) parent.appendChild(toast);
+
+    toast.textContent = text;
+    toast.style.opacity = '1';
+    if (toast._fermataTimer != null) clearTimeout(toast._fermataTimer);
+    toast._fermataTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast._fermataTimer = setTimeout(() => toast.remove(), 500);
+    }, 2500);
+  }
+
   function skipIfNeeded(video) {
     if (!isActive() || !video || video.ended || (state.segments.length === 0)) return;
 
@@ -184,6 +217,7 @@
 
       state.lastSkipKey = skipKey;
       video.currentTime = target;
+      showToast(segment.category);
       return;
     }
   }

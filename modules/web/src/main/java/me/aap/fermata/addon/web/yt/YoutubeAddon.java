@@ -42,6 +42,18 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 	private static final Pref<BooleanSupplier> YT_OPEN_ON_START = Pref.b("YT_OPEN_ON_START", false);
 	private static final Pref<BooleanSupplier> YT_AUTO_HIGHEST_QUALITY =
 			Pref.b("YT_AUTO_HIGHEST_QUALITY", false);
+	private static final Pref<Supplier<String>> YT_PREFERRED_QUALITY =
+			Pref.s("YT_PREFERRED_QUALITY", "auto");
+	// Ordered list of (pref value, label). Values match YouTube player quality tokens.
+	private static final String[][] QUALITY_LEVELS = {
+			{"highest", null}, // label resolved from resources
+			{"hd2160", "2160p (4K)"},
+			{"hd1440", "1440p"},
+			{"hd1080", "1080p (Full HD)"},
+			{"hd720", "720p"},
+			{"large", "480p"},
+			{"medium", "360p"},
+	};
 	private static final Pref<BooleanSupplier> YT_SKIP_ADD = AUTO ? Pref.b("YT_SKIP_ADD", true) : null;
 	private boolean ignorePrefChange;
 
@@ -95,10 +107,18 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 			o.title = R.string.open_on_start;
 			o.visibility = visibility;
 		});
-		set.addBooleanPref(o -> {
-			o.store = getPreferenceStore();
-			o.pref = YT_AUTO_HIGHEST_QUALITY;
-			o.title = R.string.auto_highest_video_quality;
+		set.addListPref(o -> {
+			var values = new java.util.ArrayList<android.util.Pair<String, String>>(
+					QUALITY_LEVELS.length + 1);
+			values.add(new android.util.Pair<>("auto", ctx.getString(R.string.preferred_quality_auto)));
+			for (String[] level : QUALITY_LEVELS) {
+				values.add(new android.util.Pair<>(level[0], (level[1] != null) ? level[1]
+						: ctx.getString(R.string.preferred_quality_highest)));
+			}
+			o.setStringValues(getPreferenceStore(), YT_PREFERRED_QUALITY, values);
+			o.title = R.string.preferred_video_quality;
+			o.subtitle = me.aap.fermata.R.string.string_format;
+			o.formatSubtitle = true;
 			o.visibility = visibility;
 		});
 
@@ -111,7 +131,9 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 			});
 		}
 
+		YoutubeAdBlock.contributeSettings(getPreferenceStore(), set, visibility);
 		YoutubeSponsorBlock.contributeSettings(getPreferenceStore(), set, visibility);
+		YoutubeDeArrow.contributeSettings(getPreferenceStore(), set, visibility);
 	}
 
 	@Override
@@ -166,11 +188,21 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 	}
 
 	boolean autoHighestQuality() {
-		return getPreferenceStore().getBooleanPref(YT_AUTO_HIGHEST_QUALITY);
+		return getPreferredQuality() != null;
+	}
+
+	/**
+	 * @return the preferred quality token ("highest", "hd1080", ...) or null if disabled (auto).
+	 */
+	String getPreferredQuality() {
+		String q = getPreferenceStore().getStringPref(YT_PREFERRED_QUALITY);
+		if ((q != null) && !q.isEmpty() && !"auto".equals(q)) return q;
+		// Backward compatibility with the old boolean preference
+		return getPreferenceStore().getBooleanPref(YT_AUTO_HIGHEST_QUALITY) ? "highest" : null;
 	}
 
 	boolean autoHighestQualityChanged(List<Pref<?>> prefs) {
-		return prefs.contains(YT_AUTO_HIGHEST_QUALITY);
+		return prefs.contains(YT_AUTO_HIGHEST_QUALITY) || prefs.contains(YT_PREFERRED_QUALITY);
 	}
 
 	enum VideoScale {
