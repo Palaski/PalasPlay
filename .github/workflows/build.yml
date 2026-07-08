@@ -38,6 +38,7 @@ jobs:
           ./gradlew
           :fermata:packageAutoReleaseUniversalApk
           -PABI=arm64-v8a
+          -PAPP_ID_SFX=.palas.deixa.eu.viver
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
