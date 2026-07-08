@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name_mobile_release" translatable="false">PalasPlay</string>
-    <string name="app_name_auto_release" translatable="false">PalasPlay Auto</string>
+    <string name="app_name_auto_release" translatable="false">PalasPlay</string>
     <string name="app_name_mobile_debug" translatable="false">Debug PalasPlay</string>
     <string name="app_name_auto_debug" translatable="false">Debug PalasPlay Auto</string>
     <string name="mirror_service_name_release" translatable="false">Fermata Mirror</string>
