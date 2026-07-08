@@ -131,6 +131,7 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 			});
 		}
 
+		YoutubeCleanFeed.contributeSettings(getPreferenceStore(), set, visibility);
 		YoutubeAdBlock.contributeSettings(getPreferenceStore(), set, visibility);
 		YoutubeSponsorBlock.contributeSettings(getPreferenceStore(), set, visibility);
 		YoutubeDeArrow.contributeSettings(getPreferenceStore(), set, visibility);

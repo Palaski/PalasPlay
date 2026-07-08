@@ -77,6 +77,7 @@ public class YoutubeWebView extends FermataWebView {
 		if (YoutubeSponsorBlock.isPreferenceChanged(prefs)) injectSponsorBlock();
 		if (YoutubeAdBlock.isPreferenceChanged(prefs)) injectAdBlock();
 		if (YoutubeDeArrow.isPreferenceChanged(prefs)) injectDeArrow();
+		if (YoutubeCleanFeed.isPreferenceChanged(prefs)) injectCleanFeed();
 	}
 
 	@Override
@@ -98,6 +99,7 @@ public class YoutubeWebView extends FermataWebView {
 		injectSponsorBlock();
 		injectAdBlock();
 		injectDeArrow();
+		injectCleanFeed();
 		addFocusHighlight();
 		CookieManager.getInstance().flush();
 	}
@@ -165,6 +167,17 @@ public class YoutubeWebView extends FermataWebView {
 		String script = YoutubeDeArrow.getScript(getContext(), getAddon().getPreferenceStore());
 		if (!script.isEmpty()) evaluateJavascript(script, result -> configureDeArrow());
 		else configureDeArrow();
+	}
+
+	private void injectCleanFeed() {
+		String script = YoutubeCleanFeed.getScript(getContext(), getAddon().getPreferenceStore());
+		if (!script.isEmpty()) evaluateJavascript(script, result -> configureCleanFeed());
+		else configureCleanFeed();
+	}
+
+	private void configureCleanFeed() {
+		evaluateJavascript("if (window.FermataCleanFeed) window.FermataCleanFeed.configure(" +
+				YoutubeCleanFeed.getConfigJson(getAddon().getPreferenceStore()) + ");", null);
 	}
 
 	private void configureDeArrow() {

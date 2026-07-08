@@ -27,6 +27,10 @@
     <string name="dearrow_enable_sub">Fetches title and thumbnail data from sponsor.ajay.app.</string>
     <string name="dearrow_titles">Replace titles</string>
     <string name="dearrow_thumbnails">Replace thumbnails</string>
+    <string name="hide_shorts">Hide Shorts</string>
+    <string name="hide_shorts_sub">Removes Shorts shelves and items from the feed.</string>
+    <string name="hide_posts">Hide community posts</string>
+    <string name="hide_posts_sub">Removes posts, polls and quizzes from the feed.</string>
     <string name="sponsorblock_toast">Show skip notification</string>
     <string name="sponsorblock_toast_sub">Displays a brief message when a segment is skipped.</string>
     <string name="sponsorblock_skipped">Skipped: %s</string>
