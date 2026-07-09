@@ -319,6 +319,31 @@ public class SettingsFragment extends MainActivityFragment
 			o.pref = BrowsableItemPrefs.SHOW_TRACK_ICONS;
 			o.title = R.string.show_track_icons;
 		});
+
+		var lib = a.getMediaServiceBinder().getLib();
+		if (lib instanceof me.aap.fermata.media.lib.DefaultMediaLib dLib) {
+			var homeSet = sub1.subSet(o -> o.title = R.string.home_items);
+			homeSet.addBooleanPref(o -> {
+				o.store = dLib;
+				o.pref = me.aap.fermata.media.lib.DefaultMediaLib.SHOW_LAST_PLAYED;
+				o.title = R.string.home_last_played;
+			});
+			homeSet.addBooleanPref(o -> {
+				o.store = dLib;
+				o.pref = me.aap.fermata.media.lib.DefaultMediaLib.SHOW_FOLDERS;
+				o.title = R.string.folders;
+			});
+			homeSet.addBooleanPref(o -> {
+				o.store = dLib;
+				o.pref = me.aap.fermata.media.lib.DefaultMediaLib.SHOW_FAVORITES;
+				o.title = R.string.favorites;
+			});
+			homeSet.addBooleanPref(o -> {
+				o.store = dLib;
+				o.pref = me.aap.fermata.media.lib.DefaultMediaLib.SHOW_PLAYLISTS;
+				o.title = R.string.playlists;
+			});
+		}
 		sub1.addListPref(o -> {
 			o.store = a.getPrefs();
 			o.pref = MainActivityPrefs.LOCALE;

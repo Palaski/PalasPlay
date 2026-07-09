@@ -21,7 +21,7 @@
 
         <!-- Active media item -->
         <item name="alpha">1</item>
-        <item name="colorSecondaryVariant">#A11477</item>
+        <item name="colorSecondaryVariant">#A62B1F</item>
         <item name="android:textColorTertiary">#F6F4FA</item>
 
         <!-- Popup menu -->
