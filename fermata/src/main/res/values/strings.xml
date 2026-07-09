@@ -42,7 +42,6 @@
 
     <string name="interface_prefs">Interface</string>
     <string name="home_items">Home screen items</string>
-    <string name="home_last_played">Last played</string>
     <string name="interface_prefs_aa">Android Auto</string>
     <string name="playback_settings">Playback settings</string>
     <string name="playback_control">Playback control</string>

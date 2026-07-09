@@ -69,6 +69,23 @@ public class NavBarMediator extends PrefNavBarMediator
 			Pref.sa("NAV_BAR_ITEMS_L", (String[]) null);
 	private static final Pref<Supplier<String[]>> PREF_R =
 			Pref.sa("NAV_BAR_ITEMS_R", (String[]) null);
+	// Per-item visibility (default true: nothing disappears on upgrade)
+	public static final Pref<me.aap.utils.function.BooleanSupplier> SHOW_FOLDERS =
+			Pref.b("NAV_SHOW_FOLDERS", true);
+	public static final Pref<me.aap.utils.function.BooleanSupplier> SHOW_FAVORITES =
+			Pref.b("NAV_SHOW_FAVORITES", true);
+	public static final Pref<me.aap.utils.function.BooleanSupplier> SHOW_PLAYLISTS =
+			Pref.b("NAV_SHOW_PLAYLISTS", true);
+
+	@Override
+	public void onPreferenceChanged(PreferenceStore store, List<Pref<?>> prefs) {
+		super.onPreferenceChanged(store, prefs);
+		NavBarView nb = navBar;
+		if ((nb != null) && (prefs.contains(SHOW_FOLDERS) || prefs.contains(SHOW_FAVORITES)
+				|| prefs.contains(SHOW_PLAYLISTS))) {
+			reload(nb);
+		}
+	}
 
 	@Override
 	protected Collection<NavBarItem> getItems(NavBarView nb) {
@@ -81,18 +98,24 @@ public class NavBarMediator extends PrefNavBarMediator
 		for (String name : names) {
 			switch (name) {
 				case "folders":
-					items.add(
-							create(ctx, R.id.folders_fragment, me.aap.utils.R.drawable.folder, R.string.folders,
-									items.size() < max));
+					if (getPreferenceStore(nb).getBooleanPref(SHOW_FOLDERS)) {
+						items.add(
+								create(ctx, R.id.folders_fragment, me.aap.utils.R.drawable.folder, R.string.folders,
+										items.size() < max));
+					}
 					continue;
 				case "favorites":
-					items.add(
-							create(ctx, R.id.favorites_fragment, R.drawable.favorite_filled, R.string.favorites,
-									items.size() < max));
+					if (getPreferenceStore(nb).getBooleanPref(SHOW_FAVORITES)) {
+						items.add(
+								create(ctx, R.id.favorites_fragment, R.drawable.favorite_filled, R.string.favorites,
+										items.size() < max));
+					}
 					continue;
 				case "playlists":
-					items.add(create(ctx, R.id.playlists_fragment, R.drawable.playlist, R.string.playlists,
-							items.size() < max));
+					if (getPreferenceStore(nb).getBooleanPref(SHOW_PLAYLISTS)) {
+						items.add(create(ctx, R.id.playlists_fragment, R.drawable.playlist, R.string.playlists,
+								items.size() < max));
+					}
 					continue;
 				case "menu":
 					items.add(create(ctx, R.id.menu, me.aap.utils.R.drawable.menu, R.string.menu,
