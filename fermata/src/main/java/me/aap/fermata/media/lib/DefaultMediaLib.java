@@ -37,6 +37,7 @@ import me.aap.fermata.media.pref.PlayableItemPrefs;
 import me.aap.fermata.media.pref.StreamItemPrefs;
 import me.aap.fermata.vfs.FermataVfsManager;
 import me.aap.utils.async.Async;
+import me.aap.utils.async.Completed;
 import me.aap.utils.async.FutureSupplier;
 import me.aap.utils.collection.CollectionUtils;
 import me.aap.utils.event.BasicEventBroadcaster;
@@ -169,17 +170,24 @@ public class DefaultMediaLib extends BasicEventBroadcaster<PreferenceStore.Liste
 
 		if (getRootId().equals(parentMediaId)) {
 			List<MediaItem> items = new ArrayList<>(4);
-			(getBooleanPref(SHOW_LAST_PLAYED)
-					? getLastPlayedItem().then(i -> (i == null) ? completedNull() : i.asMediaItem())
-					: completedNull())
+			boolean showFolders = getBooleanPref(SHOW_FOLDERS);
+			boolean showFavorites = getBooleanPref(SHOW_FAVORITES);
+			boolean showPlaylists = getBooleanPref(SHOW_PLAYLISTS);
+			getLastPlayedItem()
+					.then(i -> ((i == null) || !getBooleanPref(SHOW_LAST_PLAYED))
+							? Completed.<MediaItem>completedNull() : i.asMediaItem())
 					.onSuccess(i -> {
 						if (i != null) items.add(i);
-					}).then(v -> getBooleanPref(SHOW_FOLDERS) ? getFolders().asMediaItem() : completedNull())
-					.onSuccess(i -> { if (i != null) items.add(i); })
-					.then(v -> getBooleanPref(SHOW_FAVORITES) ? getFavorites().asMediaItem() : completedNull())
-					.onSuccess(i -> { if (i != null) items.add(i); })
-					.then(v -> getBooleanPref(SHOW_PLAYLISTS) ? getPlaylists().asMediaItem() : completedNull())
-					.onSuccess(i -> { if (i != null) items.add(i); })
+					}).then(v -> showFolders ? getFolders().asMediaItem() : Completed.<MediaItem>completedNull())
+					.onSuccess(i -> {
+						if (i != null) items.add(i);
+					}).then(v -> showFavorites ? getFavorites().asMediaItem() : Completed.<MediaItem>completedNull())
+					.onSuccess(i -> {
+						if (i != null) items.add(i);
+					}).then(v -> showPlaylists ? getPlaylists().asMediaItem() : Completed.<MediaItem>completedNull())
+					.onSuccess(i -> {
+						if (i != null) items.add(i);
+					})
 
 					.then(v -> Async.forEach(i -> i.asMediaItem().onSuccess(items::add),
 							CollectionUtils.map(AddonManager.get().getAddons(MediaLibAddon.class),
